@@ -5,6 +5,7 @@
 #import "RNFirebaseEvents.h"
 #import "RNFirebaseUtil.h"
 #import <FirebaseMessaging/FirebaseMessaging.h>
+#import <FirebaseInstanceID/FIRInstanceID.h>
 
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTConvert.h>
@@ -107,36 +108,23 @@ didReceiveMessage:(nonnull FIRMessagingRemoteMessage *)remoteMessage {
 
 // ** Start React Module methods **
 RCT_EXPORT_METHOD(getToken:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-  if (initialToken) {
-    resolve(initialToken);
-    initialToken = nil;
-  } else if ([[FIRMessaging messaging] FCMToken]) {
-    resolve([[FIRMessaging messaging] FCMToken]);
-  } else {
-    NSString * senderId = [[FIRApp defaultApp] options].GCMSenderID;
-    [[FIRMessaging messaging] retrieveFCMTokenForSenderID:senderId completion:^(NSString * _Nullable FCMToken, NSError * _Nullable error) {
-        if (error) {
-            reject(@"messaging/fcm-token-error", @"Failed to retrieve FCM token.", error);
-        } else if (FCMToken) {
-            resolve(FCMToken);
-        } else {
-            resolve([NSNull null]);
-        }
-    }];
-  }
-}
-
-RCT_EXPORT_METHOD(deleteToken:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-  NSString * senderId = [[FIRApp defaultApp] options].GCMSenderID;
-  [[FIRMessaging messaging] deleteFCMTokenForSenderID:senderId completion:^(NSError * _Nullable error) {
-    if (error) {
-      reject(@"messaging/fcm-token-error", @"Failed to delete FCM token.", error);
+    if (initialToken) {
+        resolve(initialToken);
+    } else if ([[FIRInstanceID instanceID] token]) {
+        resolve([[FIRInstanceID instanceID] token]);
     } else {
-      resolve([NSNull null]);
+        NSString * senderId = [[FIRApp defaultApp] options].GCMSenderID;
+        [[FIRMessaging messaging] retrieveFCMTokenForSenderID:senderId completion:^(NSString * _Nullable FCMToken, NSError * _Nullable error) {
+            if (error) {
+                reject(@"messaging/fcm-token-error", @"Failed to retrieve FCM token.", error);
+            } else if (FCMToken) {
+                resolve(FCMToken);
+            } else {
+                resolve([NSNull null]);
+            }
+        }];
     }
-  }];
 }
-
 
 RCT_EXPORT_METHOD(getAPNSToken:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     NSData *apnsToken = [FIRMessaging messaging].APNSToken;
@@ -195,14 +183,12 @@ RCT_EXPORT_METHOD(registerForRemoteNotifications:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(hasPermission:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_9_x_Max) {
         dispatch_async(dispatch_get_main_queue(), ^{
-          BOOL hasPermission = [RCTConvert BOOL:@([RCTSharedApplication() currentUserNotificationSettings].types != UIUserNotificationTypeNone)];
-          resolve(@(hasPermission));
+            resolve(@([RCTSharedApplication() currentUserNotificationSettings].types != UIUserNotificationTypeNone));
         });
     } else {
         if (@available(iOS 10.0, *)) {
             [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
-              BOOL hasPermission = [RCTConvert BOOL:@(settings.alertSetting == UNNotificationSettingEnabled)];
-              resolve(@(hasPermission));
+                resolve(@(settings.alertSetting == UNNotificationSettingEnabled));
             }];
         }
     }

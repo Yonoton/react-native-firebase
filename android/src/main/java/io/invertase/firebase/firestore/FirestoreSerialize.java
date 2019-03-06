@@ -453,6 +453,7 @@ class FirestoreSerialize {
       ReadableMap fieldValueMap = typeMap.getMap(VALUE);
       String fieldValueType = fieldValueMap.getString(TYPE_FIELDVALUE_TYPE);
 
+
       if (TYPE_FIELDVALUE_TIMESTAMP.equals(fieldValueType)) {
         return FieldValue.serverTimestamp();
       }
@@ -463,12 +464,12 @@ class FirestoreSerialize {
 
       if (TYPE_FIELDVALUE_UNION.equals(fieldValueType)) {
         ReadableArray elements = fieldValueMap.getArray(TYPE_FIELDVALUE_ELEMENTS);
-        return FieldValue.arrayUnion(parseReadableArray(firestore, elements).toArray());
+        return FieldValue.arrayUnion(elements.toArrayList().toArray());
       }
 
       if (TYPE_FIELDVALUE_REMOVE.equals(fieldValueType)) {
         ReadableArray elements = fieldValueMap.getArray(TYPE_FIELDVALUE_ELEMENTS);
-        return FieldValue.arrayRemove(parseReadableArray(firestore, elements).toArray());
+        return FieldValue.arrayRemove(elements.toArrayList().toArray());
       }
 
       Log.w(TAG, "Unknown FieldValue type: " + fieldValueType);

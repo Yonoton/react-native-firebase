@@ -223,11 +223,16 @@ static NSString *const typeFieldValueElements = @"elements";
   return array;
 }
 
+/**
+ *
+ * @param value
+ * @return
+ */
 + (NSDictionary *)buildTypeMap:(id)value {
   NSMutableDictionary *typeMap = [[NSMutableDictionary alloc] init];
 
   // null
-  if (value == nil || [value isKindOfClass:[NSNull class]]) {
+  if (value == nil) {
     typeMap[typeKey] = typeNull;
     return typeMap;
   }
@@ -286,7 +291,7 @@ static NSString *const typeFieldValueElements = @"elements";
     NSNumber *number = (NSNumber *) value;
 
     // infinity
-    if ([number isEqual:@(INFINITY)]) {
+    if (number == @(INFINITY)) {
       typeMap[typeKey] = typeInfinity;
       return typeMap;
     }
@@ -326,6 +331,12 @@ static NSString *const typeFieldValueElements = @"elements";
   return typeMap;
 }
 
+/**
+ * 
+ * @param firestore 
+ * @param jsMap 
+ * @return 
+ */
 + (NSDictionary *)parseJSMap:(FIRFirestore *)firestore
                        jsMap:(NSDictionary *)jsMap {
   NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
@@ -339,6 +350,12 @@ static NSString *const typeFieldValueElements = @"elements";
   return map;
 }
 
+/**
+ * 
+ * @param firestore 
+ * @param jsArray 
+ * @return 
+ */
 + (NSArray *)parseJSArray:(FIRFirestore *)firestore
                   jsArray:(NSArray *)jsArray {
   NSMutableArray *array = [[NSMutableArray alloc] init];
@@ -352,17 +369,23 @@ static NSString *const typeFieldValueElements = @"elements";
   return array;
 }
 
+/**
+ * 
+ * @param firestore 
+ * @param jsTypeMap 
+ * @return 
+ */
 + (id)parseJSTypeMap:(FIRFirestore *)firestore
            jsTypeMap:(NSDictionary *)jsTypeMap {
   id value = jsTypeMap[valueKey];
   NSString *type = jsTypeMap[typeKey];
 
   if ([type isEqualToString:typeArray]) {
-    return [self parseJSArray:firestore jsArray:value];
+    return [RNFirebaseFirestoreDocumentReference parseJSArray:firestore jsArray:value];
   }
 
   if ([type isEqualToString:typeObject]) {
-    return [self parseJSMap:firestore jsMap:value];
+    return [RNFirebaseFirestoreDocumentReference parseJSMap:firestore jsMap:value];
   }
 
   if ([type isEqualToString:typeReference]) {
@@ -399,18 +422,20 @@ static NSString *const typeFieldValueElements = @"elements";
     if ([string isEqualToString:typeTimestamp]) {
       return [FIRFieldValue fieldValueForServerTimestamp];
     }
-    
+      
     if ([string isEqualToString:typeFieldValueUnion]) {
-      NSArray *elements = [self parseJSArray:firestore jsArray:value[typeFieldValueElements]];
+      NSDictionary *elements = (NSDictionary *) value[typeFieldValueElements];
       return [FIRFieldValue fieldValueForArrayUnion:elements];
     }
       
     if ([string isEqualToString:typeFieldValueRemove]) {
-      NSArray *elements = [self parseJSArray:firestore jsArray:value[typeFieldValueElements]];
+      NSDictionary *elements = (NSDictionary *) value[typeFieldValueElements];
       return [FIRFieldValue fieldValueForArrayRemove:elements];
     }
 
-    DLog(@"RNFirebaseFirestore: Unsupported field-value sent to parseJSTypeMap - value is %@", NSStringFromClass([value class]));
+    DLog(@"RNFirebaseFirestore: Unsupported field-value sent to parseJSTypeMap - value is %@",
+         NSStringFromClass([value class]));
+
     return nil;
   }
 

@@ -1,7 +1,7 @@
 package io.invertase.firebase.messaging;
 
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.facebook.react.HeadlessJsTaskService;
@@ -11,21 +11,9 @@ import com.google.firebase.messaging.RemoteMessage;
 import io.invertase.firebase.Utils;
 
 public class RNFirebaseMessagingService extends FirebaseMessagingService {
-  private static final String TAG = "RNFMessagingService";
-
   public static final String MESSAGE_EVENT = "messaging-message";
-  public static final String NEW_TOKEN_EVENT = "messaging-token-refresh";
   public static final String REMOTE_NOTIFICATION_EVENT = "notifications-remote-notification";
-
-  @Override
-  public void onNewToken(String token) {
-    Log.d(TAG, "onNewToken event received");
-
-    Intent newTokenEvent = new Intent(NEW_TOKEN_EVENT);
-    LocalBroadcastManager
-      .getInstance(this)
-      .sendBroadcast(newTokenEvent);
-  }
+  private static final String TAG = "RNFMessagingService";
 
   @Override
   public void onMessageReceived(RemoteMessage message) {

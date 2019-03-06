@@ -10,10 +10,6 @@
     #endif
 #endif
 
-#if __has_include(<Fabric/Fabric.h>)
-    #import <Fabric/Fabric.h>
-#endif
-
 #ifdef HAS_CRASHLYTICS
     @implementation RNFirebaseCrashlytics
     RCT_EXPORT_MODULE();
@@ -49,12 +45,6 @@
 
     RCT_EXPORT_METHOD(setUserIdentifier:(NSString *)userId) {
         [CrashlyticsKit setUserIdentifier:userId];
-    }
-
-    RCT_EXPORT_METHOD(enableCrashlyticsCollection) {
-#if __has_include(<Fabric/Fabric.h>)
-        [Fabric with:@[[Crashlytics class]]];
-#endif
     }
 
     @end
